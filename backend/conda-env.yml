@@ -1,0 +1,20 @@
+name: hr-buddy-backend
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - cudatoolkit=12.1
+  - pip:
+    - fastapi>=0.100.0
+    - uvicorn[standard]>=0.22.0
+    - langchain==0.2.12
+    - langchain-community==0.2.12
+    - chromadb==0.5.5
+    - sentence-transformers==3.0.1
+    - faster-whisper==1.0.2
+    - torch==2.3.1+cu121
+    - torchaudio==2.3.1+cu121

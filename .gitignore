@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
+
+# Models (NEVER commit!)
+models/*.gguf
+models/*.bin
+/backend/models/*
+
+# Training
+training/output/
+training/logs/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# OS
+.DS_Store
+Thumbs.db
