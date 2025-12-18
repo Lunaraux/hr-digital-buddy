@@ -5,19 +5,53 @@ __pycache__/
 venv/
 .venv/
 
-# Models (NEVER commit!)
-models/*.gguf
-models/*.bin
-/backend/models/*
+# Models: Ignore large model files but keep configs
+models/**/*.safetensors
+models/**/*.bin
+models/**/*.onnx
+models/**/*.ot
+models/**/*.h5
+models/**/*.pb
+models/**/.mdl
+models/**/.msc
+models/**/.mv
+models/**/.lock
+models/**/._____temp
+
+# Keep important config files
+!models/**/*.json
+!models/**/*.txt
+!models/**/*.yml
+!models/**/*.md
+!models/**/*.py
+
+# Data and cache
+data/chroma/*
+!data/chroma/.gitkeep
+data/cache/
+hf_cache/
+ai-cache/
 
 # Training
 training/output/
 training/logs/
+training/checkpoints/
 
 # Frontend
 frontend/node_modules/
 frontend/dist/
+frontend/.nuxt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
+logs/

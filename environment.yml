@@ -1,0 +1,39 @@
+name: hr-digital-buddy
+
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.10
+  - pip
+  # PyTorch with CUDA 12.1 (pre-compiled, no need for cudatoolkit)
+  - pytorch==2.4.1
+  - torchvision==0.19.1
+  - torchaudio==2.4.1
+  - pytorch-cuda=12.1
+  # Web backend
+  - fastapi
+  - uvicorn[standard]
+  # RAG & Embeddings
+  - langchain
+  - chromadb
+  - sentence-transformers
+  - langchain-chroma
+  - langchain-huggingface
+  # Utilities
+  - python-dotenv
+  - requests
+  - aiofiles
+  # Pip-only packages (not in conda)
+  - pip:
+    - faster-whisper>=1.0.0
+    - huggingface-hub
+    - pypdf  # for PDF loading in LangChain
+    - modelscope  # for model downloading
+    - langchain-community  # for TextLoader and document processing
+    - transformers  # for tokenizer and model loading
+    - torch  # ensure torch consistency
+    - accelerate  # for better model performance
