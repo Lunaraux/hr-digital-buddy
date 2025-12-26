@@ -1,7 +1,4 @@
 # backend/models/llm.py（完整修正版）
-
-from backend.prompts import HR_RAG_PROMPT
-
 import os
 import torch
 from pathlib import Path
@@ -12,10 +9,7 @@ from transformers import (
     PreTrainedTokenizerBase,
 )
 from backend.utils.project_paths import QWEN2_MODEL_PATH
-from backend.config import HF_CACHE_DIR
-
-os.environ["HF_HOME"] = HF_CACHE_DIR
-os.environ["HF_HUB_CACHE"] = HF_CACHE_DIR
+# 使用项目本地模型，不再需要外部HF缓存
 
 
 class HRLLM:
@@ -64,16 +58,13 @@ class HRLLM:
         self.model.eval()
         print(" Qwen2-1.5B 模型加载完成")
 
-    def generate(self, context: str, question: str) -> str:  # ← 这里必须是 4 空格！
-        prompt = HR_RAG_PROMPT.format(context=context, question=question)
+    def generate(self, prompt: str) -> str:
+        """接收完整 prompt，不关心业务逻辑"""
         messages = [{"role": "user", "content": prompt}]
-        
         text = self.tokenizer.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True
         )
-
-        inputs = self.tokenizer([text], return_tensors="pt")  # pyright: ignore[reportArgumentType]
-        inputs = inputs.to(self.model.device)
+        inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)  # pyright: ignore[reportArgumentType]
 
         with torch.no_grad():
             outputs = self.model.generate(

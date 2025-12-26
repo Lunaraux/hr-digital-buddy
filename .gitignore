@@ -1,57 +1,101 @@
+# --------------------------------------------------------------------------
+# ENVIRONMENT & DEPENDENCIES
+# --------------------------------------------------------------------------
 # Python
 __pycache__/
 *.pyc
 .env
+.env.local
+.env.*.local
 venv/
 .venv/
 
-# Models: Ignore large model files but keep configs
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.nuxt/
+frontend/.eslintcache
+*.tsbuildinfo
+
+# --------------------------------------------------------------------------
+# ML/AI MODELS
+# --------------------------------------------------------------------------
+# Large model files
 models/**/*.safetensors
 models/**/*.bin
 models/**/*.onnx
 models/**/*.ot
 models/**/*.h5
 models/**/*.pb
+
+# Model metadata and locks
 models/**/.mdl
 models/**/.msc
 models/**/.mv
 models/**/.lock
 models/**/._____temp
 
-# Keep important config files
+# Keep important configs
 !models/**/*.json
 !models/**/*.txt
 !models/**/*.yml
 !models/**/*.md
 !models/**/*.py
 
-# Data and cache
+# --------------------------------------------------------------------------
+# DATA & CACHE
+# --------------------------------------------------------------------------
+# Database and cache
 data/chroma/*
 !data/chroma/.gitkeep
 data/cache/
 hf_cache/
 ai-cache/
 
-# Training
+# --------------------------------------------------------------------------
+# TRAINING & OUTPUTS
+# --------------------------------------------------------------------------
 training/output/
 training/logs/
 training/checkpoints/
+coverage/
+.nyc_output/
 
-# Frontend
-frontend/node_modules/
-frontend/dist/
-frontend/.nuxt
-
-# IDE
+# --------------------------------------------------------------------------
+# DEVELOPMENT & IDE
+# --------------------------------------------------------------------------
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+.vscode/settings.json
+.idea/workspace.xml
 
-# OS
+# --------------------------------------------------------------------------
+# OS & SYSTEM
+# --------------------------------------------------------------------------
 .DS_Store
 Thumbs.db
+*.tmp
+*.temp
 
-# Logs
+# --------------------------------------------------------------------------
+# LOGS
+# --------------------------------------------------------------------------
 *.log
 logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# --------------------------------------------------------------------------
+# TESTING
+# --------------------------------------------------------------------------
+__screenshots__/
+/cypress/videos/
+/cypress/screenshots/
