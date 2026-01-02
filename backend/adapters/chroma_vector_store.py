@@ -1,29 +1,19 @@
 # adapters/chroma_vector_store.py
 from backend.core.ports.vector_store import VectorStoreProtocol, RetrievedDocument
 from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
 from backend.core.config import settings
-import torch
+from backend.core.embedding_manager import get_embedding_model
 
 
 class ChromaVectorStore(VectorStoreProtocol):
     def __init__(self):
-        if settings.use_gpu and torch.cuda.is_available():
-            actual_device = "cuda"
-        else:
-            actual_device = "cpu"
-
-        self.embedding = HuggingFaceEmbeddings(
-            model_name=str(settings.embedding_model_path),
-            model_kwargs={"device": actual_device}
-        )
+        self.embedding = get_embedding_model()
         self.db = Chroma(
             persist_directory=str(settings.chroma_path),
             embedding_function=self.embedding
         )
-
     def add_texts(self, texts: list[str], metadatas: list[dict]) -> None:
-        self.db.add_texts(texts, metadatas)
+        self.db.add_texts(texts=texts, metadatas=metadatas)
 
     def similarity_search(self, query: str, k: int = 3) -> list[RetrievedDocument]:
         results = self.db.similarity_search_with_score(query, k=k)
@@ -37,5 +27,4 @@ class ChromaVectorStore(VectorStoreProtocol):
         ]
 
     def persist(self) -> None:
-        # Chroma 自动持久化，无需手动调用
-        pass
+        pass  # Chroma 自动持久化

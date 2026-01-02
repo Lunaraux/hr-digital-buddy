@@ -1,3 +1,4 @@
+# backend/core/ports/vector_store.py
 from typing import Protocol, List
 from dataclasses import dataclass
 
@@ -5,9 +6,8 @@ from dataclasses import dataclass
 class RetrievedDocument:
     content: str
     metadata: dict
-    score: float
+    score: float  # 建议统一为“相似度”，越大越好
 
 class VectorStoreProtocol(Protocol):
-    def add_texts(self, texts: List[str], metadatas: List[dict]) -> None: ...
-    def similarity_search(self, query: str, k: int = 3) -> List[RetrievedDocument]: ...
-    def persist(self) -> None: ...
+    def similarity_search(self, query: str, k: int) -> List[RetrievedDocument]:
+        ...
