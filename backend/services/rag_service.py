@@ -1,10 +1,11 @@
+# backend/services/rag_service.py
 from typing import Dict, Any, List
 from backend.core.ports.vector_store import VectorStoreProtocol, RetrievedDocument
 from backend.core.ports.llm import LLMProtocol
 import logging
 
 logger = logging.getLogger(__name__)
-MAX_CONTEXT_LENGTH = 8000
+
 
 class RAGService:
     def __init__(
@@ -18,48 +19,62 @@ class RAGService:
     def ask(self, question: str, top_k: int = 3) -> Dict[str, Any]:
         logger.info(f"Processing question: {question[:100]}...")
         
-        docs: List[RetrievedDocument] = self.vector_store.similarity_search(question, k=top_k)
-        
-        # 处理无结果情况
-        if not docs:
+        # Step 1: 检索相关文档
+        try:
+            docs: List[RetrievedDocument] = self.vector_store.similarity_search(question, k=top_k)
+        except Exception as e:
+            logger.error(f"Vector store search failed: {e}")
             return {
-                "answer": "根据现有资料无法确定",
+                "answer": "抱歉，检索文档时发生错误。",
                 "sources": []
             }
 
-        # 构建上下文（防超长）
-        context_parts = []
-        total_len = 0
+        # Step 2: 找出第一条非空的有效文档
+        selected_doc = None
         for d in docs:
-            if total_len + len(d.content) > MAX_CONTEXT_LENGTH:
+            if d.content and d.content.strip():
+                selected_doc = d
                 break
-            context_parts.append(d.content)
-            total_len += len(d.content)
-        context = "\n\n".join(context_parts)
 
-        prompt = f"""【角色】你是一个 HR 政策问答助手，必须严格遵守以下规则：
+        # Step 3: 构建上下文（只用第一条）
+        if selected_doc:
+            # 提取原始内容
+            raw_content = selected_doc.content.strip()
+            sources = [{"content": selected_doc.content, "metadata": selected_doc.metadata}]
+            
+            # 👇 关键：即使不截断，也确保上下文清晰（小模型能处理短文本）
+            context = f"【HR政策原文】\n{raw_content}"
+        else:
+            context = "无相关资料。"
+            sources = []
 
-【规则】
-1. 仅使用下方【政策原文】中明确写出的内容回答。
-2. 若原文未提及、未定义或无法直接得出答案，必须回答：“根据现有资料无法确定”。
-3. 禁止：
-   - 使用外部知识、常识或经验推断
-   - 混淆不同条款（如将年假规则用于试用期）
-   - 使用“通常”、“一般”、“可能”等模糊词
-   - 总结、改写、扩展原文
-4. 回答必须简洁，不超过两句话。
+        # Step 4: 强化 system 指令 —— 精准区分模糊 vs 具体问题
+        system_message = (
+            "你是专业的人力资源助手，请严格按以下规则回答：\n"
+            "1. 如果用户问题未说明具体工作年限（例如：‘年假多久？’、‘年假有几天？’），\n"
+            "   请完整回答：‘年假天数根据工龄确定：入职满1年不满10年为5天，满10年不满20年为10天，满20年以上为15天。’\n"
+            "2. 如果用户明确提到工作年限（例如：‘我工作3年’、‘入职8年’、‘干了15年’），\n"
+            "   请根据政策匹配并仅输出对应天数（如‘5天’、‘10天’、‘15天’），不要解释。\n"
+            "3. 禁止回答‘根据现有资料无法确定’，禁止随意猜测或只选最大值。\n"
+            "4. 不得编造政策中没有的内容。"
+        )
+        user_message = f"参考资料：\n{context}\n\n问题：{question}"
 
-【政策原文】
-{context}
+        # Step 5: 调用 LLM
+        try:
+            answer = self.llm.generate_with_messages(
+                system=system_message,
+                user=user_message,
+                max_tokens=128,
+                temperature=0.0
+            )
+            # 清理可能的多余换行或前缀
+            answer = answer.strip().split('\n')[0].strip('\"\'')
+        except Exception as e:
+            logger.error(f"LLM generation failed: {e}")
+            answer = "抱歉，生成答案时发生错误。"
 
-【问题】
-{question}
-
-【回答】（严格按规则）：
-"""
-
-        answer = self.llm.generate(prompt, max_tokens=512)
-        sources = [{"content": d.content, "metadata": d.metadata} for d in docs]
-        
-        logger.info(f"Generated answer: {answer[:100]}...")
-        return {"answer": answer, "sources": sources}
+        return {
+            "answer": answer,
+            "sources": sources
+        }
